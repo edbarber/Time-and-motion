@@ -21,6 +21,8 @@ namespace Time_and_motion
     /// </summary>
     public partial class MainWindow : Window
     {
+        private const string MESSAGE_BOX_TITLE = "Error";
+
         private VM vm;
 
         public MainWindow()
@@ -44,7 +46,14 @@ namespace Time_and_motion
 
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            vm.Generate();
+            try
+            {
+                vm.Generate();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, MESSAGE_BOX_TITLE, MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }
