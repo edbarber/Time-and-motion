@@ -21,9 +21,14 @@ namespace Time_and_motion
     /// </summary>
     public partial class MainWindow : Window
     {
+        private VM vm;
+
         public MainWindow()
         {
             InitializeComponent();
+
+            vm = new VM();
+            DataContext = vm;
         }
 
         private void Browse_Click(object sender, RoutedEventArgs e)
@@ -33,8 +38,13 @@ namespace Time_and_motion
 
             if (result == true)
             {
-                tbxFilePath.Text = openFileDialog.FileName;
+                vm.FilePath = openFileDialog.FileName;
             }
+        }
+
+        private void Generate_Click(object sender, RoutedEventArgs e)
+        {
+            vm.Generate();
         }
     }
 }

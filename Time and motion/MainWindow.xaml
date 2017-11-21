@@ -21,9 +21,9 @@
         </Grid.RowDefinitions>
         <Label Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3" Content="The ''...'' button browses for your&#x0a;.txt file and reads it as input. Hit&#x0a;generate to generate your output."/>
         <Label Grid.Column="0" Grid.Row="1" Content="File Path:"/>
-        <TextBox Name="tbxFilePath" Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2"/>
+        <TextBox Name="tbxFilePath" Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" Text="{Binding FilePath, Mode=TwoWay}"/>
         <Button Grid.Column="2" Grid.Row="2" Content="..." Click="Browse_Click"/>
-        <Button Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="2" Content="Generate" Margin="5,0,5,0" MaxHeight="30"/>
+        <Button Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="2" Content="Generate" Margin="5,0,5,0" MaxHeight="30" Click="Generate_Click"/>
         <Image Grid.Column="3" Grid.Row="0" Grid.RowSpan="4" Source="Images/Ball Clock.JPG" Margin="10"/>
     </Grid>
 </Window>
