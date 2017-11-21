@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Microsoft.Win32;
 
 namespace Time_and_motion
 {
@@ -23,6 +24,17 @@ namespace Time_and_motion
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void Browse_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            bool? result = openFileDialog.ShowDialog();
+
+            if (result == true)
+            {
+                tbxFilePath.Text = openFileDialog.FileName;
+            }
         }
     }
 }
