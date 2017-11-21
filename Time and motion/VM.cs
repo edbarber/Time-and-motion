@@ -13,7 +13,7 @@ namespace Time_and_motion
     {
         private const int MIN_BALLS = 27;
         private const int MAX_BALLS = 127;
-        private const string OUT_OF_RANGE_ERROR_FORMAT = "Please enter a number between {0} and {1}!";
+        private const string OUT_OF_RANGE_ERROR_FORMAT = "Please enter valid numbers between {0} and {1}!";
         private const int MIN_ARRAY_INDEX = 0;
         private const int MIN_ARRAY_INDEX_OFFSET = 1;
         private const int TERMINATION_VALUE = 0;
