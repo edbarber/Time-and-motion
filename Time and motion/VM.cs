@@ -22,7 +22,20 @@ namespace Time_and_motion
         private const string TERMINATION_AT_BEGINNING_OF_FILE_ERROR = "File has been terminated at the beginning. Was this intentional?";
         private const int MIN_LIST_COUNTER_VALUE = 0;
 
+        // Seperate unused const
+        private const int MINUTES_IN_A_DAY = 1440;
+        private const int MAX_MINUTE_INDICATOR_CAPACITY = 4;
+        private const int MAX_FIVE_MINUTE_INDICATOR_CAPACITY = 11;
+        private const int MAX_HOUR_INDICATOR_CAPACITY = 12;
+
         private string filePath;
+
+        // Seperate unused vars
+        private int ballQueueCount;
+        private int minuteIndicatorCount;
+        private int fiveMinuteIndicatorCount;
+        private int hourIndicatorCount;
+        private int days;
 
         public string FilePath
         {
@@ -35,7 +48,14 @@ namespace Time_and_motion
             try
             {
                 List<int> startingBallQueues = ParseFile();
-                // TODO: Add in logic to generate ball clock result
+                
+                foreach (int startingBallQueue in startingBallQueues)
+                {
+                    // every minute remove ball from queue
+                    // if minute indicator has 4 balls then remove 4 balls and add one and one to the five-minute indicator
+                    // if five minute indicator has 11 balls then remove 11 balls and add one to the hour indicator 
+                    // if hour indicator has 12 balls then remove 12 balls
+                }
             }
             catch
             {
