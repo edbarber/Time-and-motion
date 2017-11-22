@@ -187,17 +187,17 @@ namespace Time_and_motion
         {
             string outputLine;
 
-            if (days > MIN_DAYS && startingBallQueue > MIN_IENUMERABLE_COUNT_OFFSET)
+            if (days != MIN_DAYS && startingBallQueue != MIN_IENUMERABLE_COUNT_OFFSET)
             {
                 outputLine = string.Format(OUTPUT_LINES_FORMAT, new string[] {
                     startingBallQueue.ToString(), PLURAL, days.ToString(), PLURAL });
             }
-            else if (days > MIN_DAYS)
+            else if (days != MIN_DAYS)
             {
                 outputLine = string.Format(OUTPUT_LINES_FORMAT, new string[] {
                     startingBallQueue.ToString(), days.ToString(), PLURAL, string.Empty });
             }
-            else if (startingBallQueue > MIN_IENUMERABLE_COUNT)
+            else if (startingBallQueue != MIN_IENUMERABLE_COUNT)
             {
                 outputLine = string.Format(OUTPUT_LINES_FORMAT, new string[] {
                     startingBallQueue.ToString(), PLURAL, days.ToString(), string.Empty});
