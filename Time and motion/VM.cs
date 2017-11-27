@@ -25,15 +25,19 @@ namespace Time_and_motion
         private const string TERMINATION_AT_BEGINNING_OF_FILE_ERROR = "File has been terminated at the beginning. Was this intentional?";
         private const int MIN_INDICATOR_COUNT = 0;
         private const int MAX_MINUTE_INDICATOR_CAPACITY = 4;
+        private const int MAX_MINUTE_INDICATOR_CAPACITY_OFFSET = 5;
         private const int MAX_FIVE_MINUTE_INDICATOR_CAPACITY = 11;
-        private const int MAX_HOUR_INDICATOR_CAPACITY = 12;
-        private const int MAX_HOUR_INDICATOR_CAPACITY_OFFSET = 1;
+        private const int MAX_FIX_MINUTE_INDICATOR_CAPACITY_OFFSET = 12;
+        private const int MAX_HOUR_INDICATOR_CAPACITY = 11;
+        private const int MAX_HOUR_INDICATOR_CAPACITY_OFFSET = 12;
         private const int MINUTES_IN_A_DAY = 1440;
         private const string OUTPUT_FILE_NAME = "Output.txt";
         private const string OUTPUT_DIRECTORY_NAME = "Time and motion";
         private const string OUTPUT_LINES_FORMAT = "{0} ball{1} cycle after {2} day{3}.";
         private const string PLURAL = "s";
-        private const int MIN_DAYS = 1;
+        private const int MIN_DAYS_OFFSET = 1;
+        private const int MIN_DAYS = 0;
+        private const int MIN_MINUTES = 0;
         private const int MIN_IENUMERABLE_COUNT_OFFSET = 1;
         #endregion
 
@@ -123,43 +127,32 @@ namespace Time_and_motion
                     int minuteIndicatorCount = MIN_INDICATOR_COUNT;
                     int fiveMinuteIndicatorCount = MIN_INDICATOR_COUNT;
                     int hourIndicatorCount = MIN_INDICATOR_COUNT;
-                    int days = 0;
-                    int minutes = 0;
+                    int days = MIN_DAYS;
+                    int minutes = MIN_MINUTES;
 
                     do
                     {
-                        //ballQueueCount--;   // comment out to test
+                        ballQueueCount--;   
+                        minuteIndicatorCount++;
 
-                        if (minuteIndicatorCount >= MAX_MINUTE_INDICATOR_CAPACITY)
+                        if (minuteIndicatorCount > MAX_MINUTE_INDICATOR_CAPACITY)
                         {
-                            minuteIndicatorCount -= MAX_MINUTE_INDICATOR_CAPACITY;
+                            minuteIndicatorCount -= MAX_MINUTE_INDICATOR_CAPACITY_OFFSET;
                             ballQueueCount += MAX_MINUTE_INDICATOR_CAPACITY;
                             fiveMinuteIndicatorCount++;
                         }
-                        else
-                        {
-                            minuteIndicatorCount++;
-                        }
 
-                        if (fiveMinuteIndicatorCount >= MAX_FIVE_MINUTE_INDICATOR_CAPACITY)
+                        if (fiveMinuteIndicatorCount > MAX_FIVE_MINUTE_INDICATOR_CAPACITY)
                         {
-                            fiveMinuteIndicatorCount -= MAX_FIVE_MINUTE_INDICATOR_CAPACITY;
+                            fiveMinuteIndicatorCount -= MAX_FIX_MINUTE_INDICATOR_CAPACITY_OFFSET;
                             ballQueueCount += MAX_FIVE_MINUTE_INDICATOR_CAPACITY;
                             hourIndicatorCount++;
                         }
-                        else
-                        {
-                            fiveMinuteIndicatorCount++;
-                        }
 
-                        if (hourIndicatorCount >= MAX_HOUR_INDICATOR_CAPACITY)
+                        if (hourIndicatorCount > MAX_HOUR_INDICATOR_CAPACITY)
                         {
-                            hourIndicatorCount -= MAX_HOUR_INDICATOR_CAPACITY;
-                            ballQueueCount += MAX_HOUR_INDICATOR_CAPACITY;// + MAX_HOUR_INDICATOR_CAPACITY_OFFSET;
-                        }
-                        else
-                        {
-                            hourIndicatorCount++;
+                            hourIndicatorCount -= MAX_HOUR_INDICATOR_CAPACITY_OFFSET;
+                            ballQueueCount += MAX_HOUR_INDICATOR_CAPACITY_OFFSET;
                         }
 
                         minutes++;
@@ -187,12 +180,12 @@ namespace Time_and_motion
         {
             string outputLine;
 
-            if (days != MIN_DAYS && startingBallQueue != MIN_IENUMERABLE_COUNT_OFFSET)
+            if (days != MIN_DAYS_OFFSET && startingBallQueue != MIN_IENUMERABLE_COUNT_OFFSET)
             {
                 outputLine = string.Format(OUTPUT_LINES_FORMAT, new string[] {
                     startingBallQueue.ToString(), PLURAL, days.ToString(), PLURAL });
             }
-            else if (days != MIN_DAYS)
+            else if (days != MIN_DAYS_OFFSET)
             {
                 outputLine = string.Format(OUTPUT_LINES_FORMAT, new string[] {
                     startingBallQueue.ToString(), days.ToString(), PLURAL, string.Empty });
