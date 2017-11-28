@@ -55,6 +55,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Ball.cs" />
     <Compile Include="CustomException.cs" />
     <Compile Include="VM.cs" />
     <Page Include="MainWindow.xaml">

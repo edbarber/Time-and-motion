@@ -23,11 +23,8 @@ namespace Time_and_motion
         private const int MIN_IENUMERABLE_COUNT = 0;
         private const string EMPTY_FILE_ERROR = "Please add values to your file!";
         private const string TERMINATION_AT_BEGINNING_OF_FILE_ERROR = "File has been terminated at the beginning. Was this intentional?";
-        private const int MIN_INDICATOR_COUNT = 0;
         private const int MAX_MINUTE_INDICATOR_CAPACITY = 4;
-        private const int MAX_MINUTE_INDICATOR_CAPACITY_OFFSET = 5;
         private const int MAX_FIVE_MINUTE_INDICATOR_CAPACITY = 11;
-        private const int MAX_FIX_MINUTE_INDICATOR_CAPACITY_OFFSET = 12;
         private const int MAX_HOUR_INDICATOR_CAPACITY = 11;
         private const int MAX_HOUR_INDICATOR_CAPACITY_OFFSET = 12;
         private const int MINUTES_IN_A_DAY = 1440;
@@ -54,13 +51,13 @@ namespace Time_and_motion
         #endregion
 
         #region ParseFile
-        private List<int> ParseFile()
+        private List<Queue<Ball>> ParseFile()
         {
             StreamReader file = null;
 
             try
             {
-                List<int> startingBallQueues = new List<int>();
+                List<Queue<Ball>> startingBallQueues = new List<Queue<Ball>>();
                 file = new StreamReader(FilePath);
                 bool isFinished = false;
                 int counter = MIN_IENUMERABLE_COUNT;
@@ -81,7 +78,15 @@ namespace Time_and_motion
                     }
                     else if (result >= MIN_BALLS && result <= MAX_BALLS)
                     {
-                        startingBallQueues.Add(result);
+                        Queue<Ball> balls = new Queue<Ball>(result);
+
+                        for (int i = MIN_ARRAY_INDEX; i < result; i++)
+                        {
+                            Ball ball = new Ball(balls.Count);
+                            balls.Enqueue(ball);
+                        }
+
+                        startingBallQueues.Add(balls);
                         counter++;
                     }
                     else
@@ -113,46 +118,53 @@ namespace Time_and_motion
         {
             try
             {
-                List<int> startingBallQueues = ParseFile();
-                string[] output = new string[startingBallQueues.Count];
+                List<Queue<Ball>> ballQueues = ParseFile();
+                string[] output = new string[ballQueues.Count];
 
-                for (int i = MIN_ARRAY_INDEX; i < startingBallQueues.Count; i++)
+                for (int i = MIN_ARRAY_INDEX; i < ballQueues.Count; i++)
                 {
                     // every minute remove ball from queue
                     // if minute indicator has 4 balls then remove 4 balls and add one and one to the five-minute indicator
                     // if five minute indicator has 11 balls then remove 11 balls and add one to the hour indicator 
                     // if hour indicator has 12 balls then remove 12 balls
 
-                    int ballQueueCount = startingBallQueues[i];
-                    int minuteIndicatorCount = MIN_INDICATOR_COUNT;
-                    int fiveMinuteIndicatorCount = MIN_INDICATOR_COUNT;
-                    int hourIndicatorCount = MIN_INDICATOR_COUNT;
+                    Queue<Ball> ballQueue = ballQueues[i];
+                    Stack<Ball> minuteIndicator = new Stack<Ball>();
+                    Stack<Ball> fiveMinuteIndicator = new Stack<Ball>();
+                    Stack<Ball> hourIndicator = new Stack<Ball>();
                     int days = MIN_DAYS;
                     int minutes = MIN_MINUTES;
 
                     do
                     {
-                        ballQueueCount--;   
-                        minuteIndicatorCount++;
+                        minuteIndicator.Push(ballQueue.Dequeue());
 
-                        if (minuteIndicatorCount > MAX_MINUTE_INDICATOR_CAPACITY)
+                        if (minuteIndicator.Count > MAX_MINUTE_INDICATOR_CAPACITY)
                         {
-                            minuteIndicatorCount -= MAX_MINUTE_INDICATOR_CAPACITY_OFFSET;
-                            ballQueueCount += MAX_MINUTE_INDICATOR_CAPACITY;
-                            fiveMinuteIndicatorCount++;
+                            for (int j = MIN_ARRAY_INDEX; j < MAX_MINUTE_INDICATOR_CAPACITY; j++)
+                            {
+                                ballQueue.Enqueue(minuteIndicator.Pop());
+                            }
+
+                            fiveMinuteIndicator.Push(minuteIndicator.Pop());
                         }
 
-                        if (fiveMinuteIndicatorCount > MAX_FIVE_MINUTE_INDICATOR_CAPACITY)
+                        if (fiveMinuteIndicator.Count > MAX_FIVE_MINUTE_INDICATOR_CAPACITY)
                         {
-                            fiveMinuteIndicatorCount -= MAX_FIX_MINUTE_INDICATOR_CAPACITY_OFFSET;
-                            ballQueueCount += MAX_FIVE_MINUTE_INDICATOR_CAPACITY;
-                            hourIndicatorCount++;
+                            for (int j = MIN_ARRAY_INDEX; j < MAX_FIVE_MINUTE_INDICATOR_CAPACITY; j++)
+                            {
+                                ballQueue.Enqueue(fiveMinuteIndicator.Pop());
+                            }
+
+                            hourIndicator.Push(fiveMinuteIndicator.Pop());
                         }
 
-                        if (hourIndicatorCount > MAX_HOUR_INDICATOR_CAPACITY)
+                        if (hourIndicator.Count > MAX_HOUR_INDICATOR_CAPACITY)
                         {
-                            hourIndicatorCount -= MAX_HOUR_INDICATOR_CAPACITY_OFFSET;
-                            ballQueueCount += MAX_HOUR_INDICATOR_CAPACITY_OFFSET;
+                            for (int j = MIN_ARRAY_INDEX; j < MAX_HOUR_INDICATOR_CAPACITY_OFFSET; j++)
+                            {
+                                ballQueue.Enqueue(hourIndicator.Pop());
+                            }
                         }
 
                         minutes++;
@@ -161,9 +173,9 @@ namespace Time_and_motion
                         {
                             days++;
                         }
-                    } while (ballQueueCount != startingBallQueues[i]);
+                    } while (!IsInitialOrder(ballQueues[i]));
 
-                    output[i] = FormatOutputLine(days, startingBallQueues[i]);
+                    output[i] = FormatOutputLine(days, ballQueues[i]);
                 }
 
                 OutputFile(output);
@@ -175,12 +187,32 @@ namespace Time_and_motion
         }
         #endregion
 
+        #region CheckOrderOfBallQueue
+        private bool IsInitialOrder(Queue<Ball> ballQueue)
+        {
+            bool isInitialOrder = true;
+
+            for (int i = MIN_ARRAY_INDEX; i < (ballQueue.Count - MIN_ARRAY_INDEX_OFFSET); i++)
+            {
+                int ballOrderDiff = ballQueue.ElementAt(i + MIN_ARRAY_INDEX_OFFSET).GetOrderIndex() -
+                    ballQueue.ElementAt(i).GetOrderIndex() - Ball.VALID_ORDER_DIFF;
+
+                if (ballOrderDiff != Ball.VALID_ORDER_DIFF)
+                {
+                    isInitialOrder = false;
+                }
+            }
+
+            return isInitialOrder;
+        }
+        #endregion
+
         #region FormatOutputLine
-        private string FormatOutputLine(int days, int startingBallQueue)
+        private string FormatOutputLine(int days, Queue<Ball> startingBallQueue)
         {
             string outputLine;
 
-            if (days != MIN_DAYS_OFFSET && startingBallQueue != MIN_IENUMERABLE_COUNT_OFFSET)
+            if (days != MIN_DAYS_OFFSET && startingBallQueue.Count != MIN_IENUMERABLE_COUNT_OFFSET)
             {
                 outputLine = string.Format(OUTPUT_LINES_FORMAT, new string[] {
                     startingBallQueue.ToString(), PLURAL, days.ToString(), PLURAL });
@@ -190,7 +222,7 @@ namespace Time_and_motion
                 outputLine = string.Format(OUTPUT_LINES_FORMAT, new string[] {
                     startingBallQueue.ToString(), days.ToString(), PLURAL, string.Empty });
             }
-            else if (startingBallQueue != MIN_IENUMERABLE_COUNT)
+            else if (startingBallQueue.Count != MIN_IENUMERABLE_COUNT)
             {
                 outputLine = string.Format(OUTPUT_LINES_FORMAT, new string[] {
                     startingBallQueue.ToString(), PLURAL, days.ToString(), string.Empty});
