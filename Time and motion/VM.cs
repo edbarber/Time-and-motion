@@ -180,6 +180,7 @@ namespace Time_and_motion
                         if (minutes == MINUTES_IN_A_DAY)
                         {
                             days++;
+                            minutes = MIN_MINUTES;
                         }
                     } while (!IsInitialOrder(ballQueue));
 
