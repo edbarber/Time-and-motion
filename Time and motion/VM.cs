@@ -16,13 +16,17 @@ namespace Time_and_motion
         #region Constants
         private const int MIN_BALLS = 27;
         private const int MAX_BALLS = 127;
-        private const string OUT_OF_RANGE_ERROR_FORMAT = "Please enter valid numbers between {0} and {1}!";
+        private const string OUT_OF_RANGE_WARNING_FORMAT = "Please enter valid numbers between {0} and {1}!";
         private const int MIN_ARRAY_INDEX = 0;
         private const int MIN_ARRAY_INDEX_OFFSET = 1;
         private const int TERMINATION_VALUE = 0;
         private const int MIN_IENUMERABLE_COUNT = 0;
-        private const string EMPTY_FILE_ERROR = "Please add values to your file!";
-        private const string TERMINATION_AT_BEGINNING_OF_FILE_ERROR = "File has been terminated at the beginning. Was this intentional?";
+        private const string EMPTY_FILE_WARNING = "Please add values to your file!";
+        private const string NO_FILE_WARNING = "Please specify a location of a valid file!";
+        private const string NULL_REFERENCE_EXCEPTION = "ArgumentNullException";
+        private const string DIRECTORY_NOT_FOUND_EXCEPTION = "DirectoryNotFoundException";
+        private const string FILE_NOT_FOUND_EXCEPTION = "FileNotFoundException";
+        private const string TERMINATION_AT_BEGINNING_OF_FILE_WARNING = "File has been terminated at the beginning. Was this intentional?";
         private const int MAX_MINUTE_INDICATOR_CAPACITY = 4;
         private const int MAX_FIVE_MINUTE_INDICATOR_CAPACITY = 11;
         private const int MAX_HOUR_INDICATOR_CAPACITY = 11;
@@ -71,7 +75,7 @@ namespace Time_and_motion
                     {
                         if (counter == MIN_IENUMERABLE_COUNT)
                         {
-                            throw new CustomException(TERMINATION_AT_BEGINNING_OF_FILE_ERROR);
+                            throw new CustomException(TERMINATION_AT_BEGINNING_OF_FILE_WARNING);
                         }
 
                         isFinished = true;
@@ -91,13 +95,13 @@ namespace Time_and_motion
                     }
                     else
                     {
-                        throw new CustomException(string.Format(OUT_OF_RANGE_ERROR_FORMAT, MIN_BALLS, MAX_BALLS));
+                        throw new CustomException(string.Format(OUT_OF_RANGE_WARNING_FORMAT, MIN_BALLS, MAX_BALLS));
                     }
                 }
 
                 if (startingBallQueues.Count == MIN_IENUMERABLE_COUNT)
                 {
-                    throw new CustomException(EMPTY_FILE_ERROR);
+                    throw new CustomException(EMPTY_FILE_WARNING);
                 }
 
                 return startingBallQueues;
@@ -108,7 +112,10 @@ namespace Time_and_motion
             }
             finally
             {
-                file.Close();
+                if (file != null)
+                {
+                    file.Dispose();
+                }
             }
         }
         #endregion
@@ -132,6 +139,7 @@ namespace Time_and_motion
                     Stack<Ball> minuteIndicator = new Stack<Ball>();
                     Stack<Ball> fiveMinuteIndicator = new Stack<Ball>();
                     Stack<Ball> hourIndicator = new Stack<Ball>();
+                    int initBallQueueCount = ballQueue.Count;
                     int days = MIN_DAYS;
                     int minutes = MIN_MINUTES;
 
@@ -173,15 +181,22 @@ namespace Time_and_motion
                         {
                             days++;
                         }
-                    } while (!IsInitialOrder(ballQueues[i]));
+                    } while (!IsInitialOrder(ballQueue));
 
-                    output[i] = FormatOutputLine(days, ballQueues[i]);
+                    output[i] = FormatOutputLine(days, initBallQueueCount);
                 }
 
                 OutputFile(output);
             }
-            catch
+            catch (Exception ex)
             {
+                if (ex.GetType().Name == NULL_REFERENCE_EXCEPTION || ex.GetType().Name == DIRECTORY_NOT_FOUND_EXCEPTION ||
+                    ex.GetType().Name == FILE_NOT_FOUND_EXCEPTION)
+                {
+                    FilePath = null;
+                    throw new CustomException(NO_FILE_WARNING);
+                }
+
                 throw;
             }
         }
@@ -208,29 +223,29 @@ namespace Time_and_motion
         #endregion
 
         #region FormatOutputLine
-        private string FormatOutputLine(int days, Queue<Ball> startingBallQueue)
+        private string FormatOutputLine(int days, int ballCount)
         {
             string outputLine;
 
-            if (days != MIN_DAYS_OFFSET && startingBallQueue.Count != MIN_IENUMERABLE_COUNT_OFFSET)
+            if (days != MIN_DAYS_OFFSET && ballCount != MIN_IENUMERABLE_COUNT_OFFSET)
             {
                 outputLine = string.Format(OUTPUT_LINES_FORMAT, new string[] {
-                    startingBallQueue.ToString(), PLURAL, days.ToString(), PLURAL });
+                    ballCount.ToString(), PLURAL, days.ToString(), PLURAL });
             }
             else if (days != MIN_DAYS_OFFSET)
             {
                 outputLine = string.Format(OUTPUT_LINES_FORMAT, new string[] {
-                    startingBallQueue.ToString(), days.ToString(), PLURAL, string.Empty });
+                    ballCount.ToString(), string.Empty, days.ToString(), PLURAL });
             }
-            else if (startingBallQueue.Count != MIN_IENUMERABLE_COUNT)
+            else if (ballCount != MIN_IENUMERABLE_COUNT)
             {
                 outputLine = string.Format(OUTPUT_LINES_FORMAT, new string[] {
-                    startingBallQueue.ToString(), PLURAL, days.ToString(), string.Empty});
+                    ballCount.ToString(), PLURAL, days.ToString(), string.Empty});
             }
             else
             {
                 outputLine = string.Format(OUTPUT_LINES_FORMAT, new string[] {
-                    startingBallQueue.ToString(), string.Empty, days.ToString(), string.Empty});
+                    ballCount.ToString(), string.Empty, days.ToString(), string.Empty});
             }
 
             return outputLine;
@@ -240,22 +255,36 @@ namespace Time_and_motion
         #region OutputFile
         private void OutputFile(string[] values)
         {
-            string dirName = OUTPUT_DIRECTORY_NAME;
-            string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            string fullPath = Path.Combine(path, dirName);
+            StreamWriter file = null;
 
-            Directory.CreateDirectory(fullPath);
-
-            string filePath = Path.Combine(fullPath, OUTPUT_FILE_NAME);
-            string output = string.Empty;
-
-            foreach (string value in values)
+            try
             {
-                output += value + Environment.NewLine;
-            }
+                string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                string fullPath = Path.Combine(path, OUTPUT_DIRECTORY_NAME);
 
-            File.WriteAllText(filePath, output);
-            Process.Start(filePath);
+                Directory.CreateDirectory(fullPath);
+
+                string filePath = Path.Combine(fullPath, OUTPUT_FILE_NAME);
+                file = new StreamWriter(filePath, false);
+
+                foreach (string value in values)
+                {
+                    file.WriteLine(value);
+                }
+
+                Process.Start(filePath);
+            }
+            catch
+            {
+                throw;
+            }
+            finally
+            {
+                if (file != null)
+                {
+                    file.Dispose();
+                }
+            }
         }
         #endregion
 

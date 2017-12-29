@@ -21,7 +21,8 @@ namespace Time_and_motion
     /// </summary>
     public partial class MainWindow : Window
     {
-        private const string MESSAGE_BOX_TITLE = "Error";
+        private const string MESSAGE_BOX_WARNING_TITLE = "Warning";
+        private const string MESSAGE_BOX_ERROR_TITLE = "Error";
 
         private VM vm;
 
@@ -52,7 +53,14 @@ namespace Time_and_motion
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, MESSAGE_BOX_TITLE, MessageBoxButton.OK, MessageBoxImage.Error);
+                if (ex.GetType().Name == typeof(CustomException).Name)
+                {
+                    MessageBox.Show(ex.Message, MESSAGE_BOX_WARNING_TITLE, MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+                else
+                {
+                    MessageBox.Show(ex.Message, MESSAGE_BOX_ERROR_TITLE, MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
     }
