@@ -30,7 +30,6 @@ namespace Time_and_motion
         private const int MAX_MINUTE_INDICATOR_CAPACITY = 4;
         private const int MAX_FIVE_MINUTE_INDICATOR_CAPACITY = 11;
         private const int MAX_HOUR_INDICATOR_CAPACITY = 11;
-        private const int MAX_HOUR_INDICATOR_CAPACITY_OFFSET = 12;
         private const int MINUTES_IN_A_DAY = 1440;
         private const string OUTPUT_FILE_NAME = "Output.txt";
         private const string OUTPUT_DIRECTORY_NAME = "Time and motion";
@@ -136,43 +135,51 @@ namespace Time_and_motion
                     // if hour indicator has 12 balls then remove 12 balls
 
                     Queue<Ball> ballQueue = ballQueues[i];
-                    Stack<Ball> minuteIndicator = new Stack<Ball>();
-                    Stack<Ball> fiveMinuteIndicator = new Stack<Ball>();
-                    Stack<Ball> hourIndicator = new Stack<Ball>();
+                    List<Ball> minuteIndicator = new List<Ball>();
+                    List<Ball> fiveMinuteIndicator = new List<Ball>();
+                    List<Ball> hourIndicator = new List<Ball>();
                     int initBallQueueCount = ballQueue.Count;
                     int days = MIN_DAYS;
                     int minutes = MIN_MINUTES;
 
                     do
                     {
-                        minuteIndicator.Push(ballQueue.Dequeue());
+                        minuteIndicator.Insert(minuteIndicator.Count, ballQueue.Dequeue());
 
                         if (minuteIndicator.Count > MAX_MINUTE_INDICATOR_CAPACITY)
                         {
-                            for (int j = MIN_ARRAY_INDEX; j < MAX_MINUTE_INDICATOR_CAPACITY; j++)
+                            for (int j = MAX_MINUTE_INDICATOR_CAPACITY - MIN_ARRAY_INDEX_OFFSET; j >= MIN_ARRAY_INDEX; j--)
                             {
-                                ballQueue.Enqueue(minuteIndicator.Pop());
+                                ballQueue.Enqueue(minuteIndicator[j]);
+                                minuteIndicator.RemoveAt(j);
                             }
 
-                            fiveMinuteIndicator.Push(minuteIndicator.Pop());
+                            fiveMinuteIndicator.Insert(MIN_ARRAY_INDEX, minuteIndicator[MIN_ARRAY_INDEX]);
+                            minuteIndicator.RemoveAt(MIN_ARRAY_INDEX);
                         }
 
                         if (fiveMinuteIndicator.Count > MAX_FIVE_MINUTE_INDICATOR_CAPACITY)
                         {
-                            for (int j = MIN_ARRAY_INDEX; j < MAX_FIVE_MINUTE_INDICATOR_CAPACITY; j++)
+                            for (int j = MAX_FIVE_MINUTE_INDICATOR_CAPACITY - MIN_ARRAY_INDEX_OFFSET; j >= MIN_ARRAY_INDEX; j--)
                             {
-                                ballQueue.Enqueue(fiveMinuteIndicator.Pop());
+                                ballQueue.Enqueue(fiveMinuteIndicator[j]);
+                                fiveMinuteIndicator.RemoveAt(j);
                             }
 
-                            hourIndicator.Push(fiveMinuteIndicator.Pop());
+                            hourIndicator.Insert(MIN_ARRAY_INDEX, fiveMinuteIndicator[MIN_ARRAY_INDEX]);
+                            fiveMinuteIndicator.RemoveAt(MIN_ARRAY_INDEX);
                         }
 
                         if (hourIndicator.Count > MAX_HOUR_INDICATOR_CAPACITY)
                         {
-                            for (int j = MIN_ARRAY_INDEX; j < MAX_HOUR_INDICATOR_CAPACITY_OFFSET; j++)
+                            for (int j = MAX_HOUR_INDICATOR_CAPACITY - MIN_ARRAY_INDEX_OFFSET; j >= MIN_ARRAY_INDEX; j--)
                             {
-                                ballQueue.Enqueue(hourIndicator.Pop());
+                                ballQueue.Enqueue(hourIndicator[j]);
+                                hourIndicator.RemoveAt(j);
                             }
+
+                            ballQueue.Enqueue(hourIndicator[MIN_ARRAY_INDEX]);
+                            hourIndicator.RemoveAt(MIN_ARRAY_INDEX);
                         }
 
                         minutes++;
